@@ -18,14 +18,31 @@ app.use(express.json({ limit: "10mb" }));
 const uri =
   "mongodb+srv://pamperme20:pamperme20@cluster0.gzilgnl.mongodb.net/?retryWrites=true&w=majority";
 
+// const client = new MongoClient(uri, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+//   serverApi: ServerApiVersion.v1,
+// });
+
 const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
 
 async function run() {
+
   try {
+    // Connect the client to the server	(optional starting in v4.7)
+    client.connect();
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+
+
     const productCollection = client.db("pamperme").collection("products");
     const orderCollection = client.db("pamperme").collection("orders");
     const userCollection = client.db("pamperme").collection("users");
@@ -58,7 +75,7 @@ async function run() {
     // get products
     app.get("/products", async (req, res) => {
       const query = { status: "publish", stock_status: "instock" };
-      const cursor = productCollection.find(query)
+      const cursor = productCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
       console.log(result.length);
@@ -66,7 +83,7 @@ async function run() {
     // get services
     app.get("/services", async (req, res) => {
       const query = {};
-      const cursor = serviceCollection.find(query)
+      const cursor = serviceCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
       console.log(result.length);
@@ -75,7 +92,7 @@ async function run() {
     app.get("/update-product-slugs", async (req, res) => {
       try {
         const query = { status: "publish", stock_status: "instock" };
-        const cursor = productCollection.find(query)
+        const cursor = productCollection.find(query);
 
         const products = await cursor.toArray();
 
@@ -104,7 +121,7 @@ async function run() {
       const cursor = productCollection
         .find(query)
         .skip(page * 50)
-        .limit(50)
+        .limit(50);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -191,9 +208,7 @@ async function run() {
     // get new arrivals
     app.get("/newArrivals", async (req, res) => {
       const query = { status: "publish", stock_status: "instock" };
-      const cursor = productCollection
-        .find(query)
-        .limit(50)
+      const cursor = productCollection.find(query).limit(50);
       const result = await cursor.toArray();
       res.send(result);
       console.log(result.length);
@@ -211,9 +226,7 @@ async function run() {
         },
       };
 
-      const cursor = productCollection
-        .find(query)
-        .limit(50)
+      const cursor = productCollection.find(query).limit(50);
       const result = await cursor.toArray();
       res.send(result);
       console.log(result.length);
@@ -264,7 +277,7 @@ async function run() {
         .find(query)
         .sort({ date_created: -1 })
         .skip(page * 50)
-        .limit(50)
+        .limit(50);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -337,9 +350,7 @@ async function run() {
           $options: "i", // "i" for case-insensitive
         },
       };
-      const result = await productCollection
-        .find(query)
-        .toArray();
+      const result = await productCollection.find(query).toArray();
       res.send(result);
       console.log(result.length);
     });
