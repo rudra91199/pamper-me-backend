@@ -37,11 +37,6 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     client.connect();
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
-
 
     const productCollection = client.db("pamperme").collection("products");
     const orderCollection = client.db("pamperme").collection("orders");
@@ -829,6 +824,10 @@ async function run() {
     //     res.status(500).json({ error: "Internal server error" });
     //   }
     // });
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
 
   } finally {
   }
