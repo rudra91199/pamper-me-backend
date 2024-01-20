@@ -13,6 +13,7 @@ app.use(express.json({ limit: "10mb" }));
 
 // database user and password
 // pamperme20
+// pamper-me-backend.vercel.app
 
 const uri =
   "mongodb+srv://pamperme20:pamperme20@cluster0.gzilgnl.mongodb.net/?retryWrites=true&w=majority";
