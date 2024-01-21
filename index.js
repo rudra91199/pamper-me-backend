@@ -45,6 +45,7 @@ async function run() {
     const blogCollection = client.db("pamperme").collection("blogs");
     const reviewCollection = client.db("pamperme").collection("reviews");
     const serviceCollection = client.db("pamperme").collection("services");
+    const bookingCollection = client.db("pamperme").collection("bookings");
 
     // Function to convert a product name to a slug
     function product_name_to_slug(product_name) {
@@ -82,6 +83,12 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
       console.log(result.length);
+    });
+    // post booking
+    app.post("/confirmBooking", async (req, res) => {
+      const data = req.body;
+      const result = await bookingCollection.insertOne(data);
+      res.send(result);
     });
 
     app.get("/update-product-slugs", async (req, res) => {
