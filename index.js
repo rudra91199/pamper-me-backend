@@ -84,6 +84,23 @@ async function run() {
       res.send(result);
       console.log(result.length);
     });
+    // get All Bookings
+    app.get("/bookings", async (req, res) => {
+      const query = {};
+      const cursor = bookingCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+      console.log(result.length);
+    });
+    // get bookings by email
+    app.get("/bookingsByEmail/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {email};
+      const cursor = bookingCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+      console.log(result.length);
+    });
     // post booking
     app.post("/confirmBooking", async (req, res) => {
       const data = req.body;
