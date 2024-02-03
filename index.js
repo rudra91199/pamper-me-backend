@@ -33,7 +33,6 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-
   try {
     // Connect the client to the server	(optional starting in v4.7)
     client.connect();
@@ -95,7 +94,7 @@ async function run() {
     // get bookings by email
     app.get("/bookingsByEmail/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email};
+      const query = { email };
       const cursor = bookingCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -156,49 +155,28 @@ async function run() {
     });
 
     // get admin dashboard products
-    app.get("/Allproducts", async (req, res) => {
-      const page = parseInt(req.query.page);
-      const query = {};
-      let products;
-      if (page) {
-        products = await productCollection
-          .find(query)
-          .sort({ date_created: -1 })
-          .skip(page * 50)
-          .limit(50)
-          .toArray();
-      } else {
-        products = await productCollection
-          .find(query)
-          .sort({ date_created: -1 })
-          .limit(50)
-          .toArray();
-      }
-      res.send(products);
-      console.log(products.length);
-    });
+    // app.get("/Allproducts", async (req, res) => {
+    //   const page = parseInt(req.query.page);
+    //   const query = {};
+    //   let products;
+    //   if (page) {
+    //     products = await productCollection
+    //       .find(query)
+    //       .sort({ date_created: -1 })
+    //       .skip(page * 50)
+    //       .limit(50)
+    //       .toArray();
+    //   } else {
+    //     products = await productCollection
+    //       .find(query)
+    //       .sort({ date_created: -1 })
+    //       .limit(50)
+    //       .toArray();
+    //   }
+    //   res.send(products);
+    //   console.log(products.length);
+    // });
     // get all products
-    app.get("/backup", async (req, res) => {
-      const page = parseInt(req.query.page);
-      const query = {};
-      let products;
-      if (page) {
-        products = await productCollection
-          .find(query)
-          .sort({ date_created: -1 })
-          .skip(page * 100)
-          .limit(100)
-          .toArray();
-      } else {
-        products = await productCollection
-          .find(query)
-          .sort({ date_created: -1 })
-          .limit(100)
-          .toArray();
-      }
-      res.send(products);
-      console.log(products.length);
-    });
 
     // get single product
     app.get("/product/:slug", async (req, res) => {
@@ -268,7 +246,6 @@ async function run() {
     //get products count by categories
     app.get("/categoryProductCount", async (req, res) => {
       const name = req.query.name;
-      console.log(name);
       const query = {
         status: "publish",
         stock_status: "instock",
@@ -281,35 +258,18 @@ async function run() {
     });
 
     //get products by categories
-    app.get("/getProductsByCategories", async (req, res) => {
+    app.get("/getProductsByCategory", async (req, res) => {
       const page = req.query.page;
-      const name = req.query.name;
-      console.log(name);
+      const category = req.query.category;
       const query = {
         status: "publish",
         stock_status: "instock",
-        "categories.name": {
-          $regex: new RegExp(name, "i"), // "i" for case-insensitive
-        },
+        category: { $regex: new RegExp(category, "i") },
       };
       const cursor = productCollection
         .find(query)
-        .sort({ date_created: -1 })
         .skip(page * 50)
         .limit(50);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-    //filter products by categories
-    app.get("/filterByCategories", async (req, res) => {
-      const page = req.query.page;
-      const name = req.query.name;
-      const query = {
-        "categories.name": {
-          $regex: new RegExp(name, "i"), // "i" for case-insensitive
-        },
-      };
-      const cursor = productCollection.find(query).sort({ date_created: -1 });
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -852,7 +812,6 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
-
   } finally {
   }
 }
