@@ -69,8 +69,8 @@ async function run() {
 
     // get products
     app.get("/products", async (req, res) => {
-      const query = { status: "publish", stock_status: "instock" };
-      const cursor = productCollection.find(query);
+      // const query = { status: "publish", stock_status: "instock" };
+      const cursor = productCollection.find();
       const result = await cursor.toArray();
       res.send(result);
       console.log(result.length);
