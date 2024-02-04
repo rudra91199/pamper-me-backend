@@ -260,12 +260,17 @@ async function run() {
     //get products by categories
     app.get("/getProductsByCategory", async (req, res) => {
       const page = req.query.page;
-      const category = req.query.category;
+      // const category = req.query.category;
       const query = {
+        ...(req.query.subcategory && { subcategory: req.query.subcategory}),
+        ...(req.query.category && { category: req.query.category}),
+        ...(req.query.Brand && { Brand: req.query.Brand}),
+
         // status: "publish",
         // stock_status: "instock",
-        category: { $regex: new RegExp(category, "i") },
+        // category: { $regex: new RegExp(category, "i") },
       };
+      console.log(query);
       const cursor = productCollection
         .find(query)
       const result = await cursor.toArray();
