@@ -262,14 +262,12 @@ async function run() {
       const page = req.query.page;
       const category = req.query.category;
       const query = {
-        status: "publish",
-        stock_status: "instock",
+        // status: "publish",
+        // stock_status: "instock",
         category: { $regex: new RegExp(category, "i") },
       };
       const cursor = productCollection
         .find(query)
-        .skip(page * 50)
-        .limit(50);
       const result = await cursor.toArray();
       res.send(result);
     });
