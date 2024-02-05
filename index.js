@@ -72,29 +72,7 @@ async function run() {
       // const query = { status: "publish", stock_status: "instock" };
       const cursor = productCollection.find();
       const result = await cursor.toArray();
-      const uniqueBrands = [
-        ...new Set(
-           result.map(
-            (product) => product.Brand
-          )
-        ),
-      ];
-      const uniqueCategory = [
-        ...new Set(
-           result.map(
-            (product) => product.category
-          )
-        ),
-      ];
-      const uniqueSubcategory = [
-        ...new Set(
-           result.map(
-            (product) => product.subcategory
-          )
-        ),
-      ];
-      res.send({uniqueBrands, uniqueCategory, uniqueSubcategory,result});
-      console.log(result.length);
+      res.send(result);
     });
     // get services
     app.get("/services", async (req, res) => {
@@ -294,6 +272,7 @@ async function run() {
       const cursor = productCollection
         .find(query)
       const result = await cursor.toArray();
+      console.log(result)
       res.send(result);
     });
 
