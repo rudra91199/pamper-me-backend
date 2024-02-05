@@ -72,7 +72,28 @@ async function run() {
       // const query = { status: "publish", stock_status: "instock" };
       const cursor = productCollection.find();
       const result = await cursor.toArray();
-      res.send(result);
+      const uniqueBrands = [
+        ...new Set(
+           result.map(
+            (product) => product.Brand
+          )
+        ),
+      ];
+      const uniqueCategory = [
+        ...new Set(
+           result.map(
+            (product) => product.category
+          )
+        ),
+      ];
+      const uniqueSubcategory = [
+        ...new Set(
+           result.map(
+            (product) => product.subcategory
+          )
+        ),
+      ];
+      res.send({uniqueBrands, uniqueCategory, uniqueSubcategory,result});
       console.log(result.length);
     });
     // get services
@@ -259,12 +280,11 @@ async function run() {
 
     //get products by categories
     app.get("/getProductsByCategory", async (req, res) => {
-      const page = req.query.page;
-      // const category = req.query.category;
+      console.log(req.query)
       const query = {
-        ...(req.query.subcategory && { subcategory: req.query.subcategory}),
-        ...(req.query.category && { category: req.query.category}),
-        ...(req.query.Brand && { Brand: req.query.Brand}),
+        ...(req.query.subcategory!="undefined" && { subcategory: req.query.subcategory}),
+        ...(req.query.category!="undefined" && { category: req.query.category}),
+        ...(req.query.Brand!="undefined" && { Brand: req.query.Brand}),
 
         // status: "publish",
         // stock_status: "instock",
