@@ -70,60 +70,85 @@ async function run() {
     // get products
     app.get("/products", async (req, res) => {
       // const query = { status: "publish", stock_status: "instock" };
-
       const query = req.query;
       let uniqueSubCategory;
       let uniqueBrand;
+      console.log(query);
 
-      const  products = await productCollection.find().toArray();
-      
+      const products = await productCollection.find().toArray();
+
       const uniqueCategory = [
         ...new Set(products.map((item) => item.category)),
       ];
-  
-      if(!query.category && query.subcategory){
+
+      if (!query.category && query.subcategory) {
         const cat = products.find(
           (product) => product.subcategory == query.subcategory
-          ).category;
-          // const subcategory = await productCollection.find({category:cat}).toArray();
-          const subcategory = products.filter(product => product.category == cat);
-          uniqueSubCategory = [...new Set(subcategory.map((item) => item.subcategory))]
-          const brand = subcategory.filter( product => product.subcategory == query.subcategory)
-          uniqueBrand = [...new Set(brand.map((item) => item.Brand))]
-        }
-        else if (query.category && !query.subcategory){
-        // const subcategory = await productCollection.find(filter1).toArray();
-        const subcategory = products.filter(product => product.category == query.category)
+        ).category;
+        // const subcategory = await productCollection.find({category:cat}).toArray();
+        const subcategory = products.filter(
+          (product) => product.category == cat
+        );
         uniqueSubCategory = [
           ...new Set(subcategory.map((item) => item.subcategory)),
         ];
-        const brand = products.filter(product => product.category == query.category)
-        uniqueBrand = [...new Set(brand.map((item) => item.Brand))]
+        const brand = subcategory.filter(
+          (product) => product.subcategory == query.subcategory
+        );
+        uniqueBrand = [...new Set(brand.map((item) => item.Brand))];
+      } else if (query.category && !query.subcategory) {
+        // const subcategory = await productCollection.find(filter1).toArray();
+        const subcategory = products.filter(
+          (product) => product.category == query.category
+        );
+        uniqueSubCategory = [
+          ...new Set(subcategory.map((item) => item.subcategory)),
+        ];
+        const brand = products.filter(
+          (product) => product.category == query.category
+        );
+        uniqueBrand = [...new Set(brand.map((item) => item.Brand))];
+      } else if (
+        query.category &&
+        query.category != "all" &&
+        query.subcategory &&
+        query.subcategory != "brand"
+      ) {
+        let subcategory;
+        if (query.brand) {
+          subcategory = products.filter(
+            (product) => product.Brand == query.brand && product.category == query.category
+          );
+        } else {
+          subcategory = products.filter(
+            (product) => product.category == query.category
+          );
         }
-        else if(query.category && query.subcategory){
-          const subcategory = products.filter(product => product.category == query.category)
-          uniqueSubCategory = [
-            ...new Set(subcategory.map((item) => item.subcategory)),
-          ];
-          const brand = products.filter(product => product.subcategory == query.subcategory);
-          uniqueBrand = [...new Set(brand.map((item) => item.Brand))]
-
-        }
-        else if(query.brand){
-          const subcategory = products.filter(product => product.Brand == query.brand);
-          uniqueSubCategory = [
-            ...new Set(subcategory.map((item) => item.subcategory)),
-          ];
-          uniqueBrand = [...new Set(products.map((item) => item.Brand))]
-        }
-        else{
+        uniqueSubCategory = [
+          ...new Set(subcategory.map((item) => item.subcategory)),
+        ];
+        const brand = products.filter(
+          (product) => product.subcategory == query.subcategory
+        );
+        uniqueBrand = [...new Set(brand.map((item) => item.Brand))];
+      }
+      // else if(query.ca)
+      else if (query.brand) {
+        const subcategory = products.filter(
+          (product) => product.Brand == query.brand
+        );
+        uniqueSubCategory = [
+          ...new Set(subcategory.map((item) => item.subcategory)),
+        ];
+        uniqueBrand = [...new Set(products.map((item) => item.Brand))];
+      } else {
         uniqueSubCategory = [
           ...new Set(products.map((item) => item.subcategory)),
         ];
-        uniqueBrand = [...new Set(products.map((item) => item.Brand))]
+        uniqueBrand = [...new Set(products.map((item) => item.Brand))];
       }
-      res.send({products, uniqueCategory, uniqueSubCategory, uniqueBrand });
 
+      res.send({ products, uniqueCategory, uniqueSubCategory, uniqueBrand });
 
       // const cursor = productCollection.find();
       // const result = await cursor.toArray();
@@ -313,7 +338,6 @@ async function run() {
 
     //get products by categories
     app.get("/getProductsByCategory", async (req, res) => {
-      console.log(req.query);
       const query = {
         ...(req.query.subcategory &&
           req.query.subcategory != "brand" && {
@@ -322,17 +346,27 @@ async function run() {
         ...(req.query.category &&
           req.query.category != "all" && { category: req.query.category }),
         ...(req.query.Brand && { Brand: req.query.Brand }),
-
+          ...((req.query.min && req.query.max) && ({price: {$gt:req.query.min, $lt:req.query.max}}) )
         // status: "publish",
         // stock_status: "instock",
         // category: { $regex: new RegExp(category, "i") },
       };
-      console.log(query);
       const cursor = productCollection.find(query);
       const result = await cursor.toArray();
-      console.log(result);
       res.send(result);
     });
+
+    //get products by query
+    app.get("/getProductsByQuery", async(req, res) =>{
+      const query = req.query;
+      console.log(query);
+      const filter = {
+        ...(query.search && {name: { $regex: new RegExp(query.search, "i") }})
+      }
+      console.log(filter)
+      const result = await  productCollection.find(filter).toArray();
+      res.send(result);
+    })
 
     //get filters
     app.get("/getfilters", async (req, res) => {
@@ -340,52 +374,63 @@ async function run() {
       let uniqueSubCategory;
       let uniqueBrand;
 
-      const  products = await productCollection.find().toArray();
-      
+      const products = await productCollection.find().toArray();
+
       const uniqueCategory = [
         ...new Set(products.map((item) => item.category)),
       ];
-  
-      if(!query.category && query.subcategory){
+
+      if (!query.category && query.subcategory) {
         const cat = products.find(
           (product) => product.subcategory == query.subcategory
-          ).category;
-          // const subcategory = await productCollection.find({category:cat}).toArray();
-          const subcategory = products.filter(product => product.category == cat);
-          uniqueSubCategory = [...new Set(subcategory.map((item) => item.subcategory))]
-          const brand = subcategory.filter( product => product.subcategory == query.subcategory)
-          uniqueBrand = [...new Set(brand.map((item) => item.Brand))]
-        }
-        else if (query.category && !query.subcategory){
-        // const subcategory = await productCollection.find(filter1).toArray();
-        const subcategory = products.filter(product => product.category == query.category)
+        ).category;
+        // const subcategory = await productCollection.find({category:cat}).toArray();
+        const subcategory = products.filter(
+          (product) => product.category == cat
+        );
         uniqueSubCategory = [
           ...new Set(subcategory.map((item) => item.subcategory)),
         ];
-        const brand = products.filter(product => product.category == query.category)
-        uniqueBrand = [...new Set(brand.map((item) => item.Brand))]
-        }
-        else if(query.category && query.subcategory){
-          const subcategory = products.filter(product => product.category == query.category)
-          uniqueSubCategory = [
-            ...new Set(subcategory.map((item) => item.subcategory)),
-          ];
-          const brand = products.filter(product => product.subcategory == query.subcategory);
-          uniqueBrand = [...new Set(brand.map((item) => item.Brand))]
-
-        }
-        else if(query.brand){
-          const subcategory = products.filter(product => product.Brand == query.brand);
-          uniqueSubCategory = [
-            ...new Set(subcategory.map((item) => item.subcategory)),
-          ];
-          uniqueBrand = [...new Set(products.map((item) => item.Brand))]
-        }
-        else{
+        const brand = subcategory.filter(
+          (product) => product.subcategory == query.subcategory
+        );
+        uniqueBrand = [...new Set(brand.map((item) => item.Brand))];
+      } else if (query.category && !query.subcategory) {
+        // const subcategory = await productCollection.find(filter1).toArray();
+        const subcategory = products.filter(
+          (product) => product.category == query.category
+        );
+        uniqueSubCategory = [
+          ...new Set(subcategory.map((item) => item.subcategory)),
+        ];
+        const brand = products.filter(
+          (product) => product.category == query.category
+        );
+        uniqueBrand = [...new Set(brand.map((item) => item.Brand))];
+      } else if (query.category && query.subcategory) {
+        const subcategory = products.filter(
+          (product) => product.category == query.category
+        );
+        uniqueSubCategory = [
+          ...new Set(subcategory.map((item) => item.subcategory)),
+        ];
+        const brand = products.filter(
+          (product) => product.subcategory == query.subcategory
+        );
+        uniqueBrand = [...new Set(brand.map((item) => item.Brand))];
+      } else if (query.brand) {
+        const subcategory = products.filter(
+          (product) => product.Brand == query.brand
+        );
+        uniqueSubCategory = [
+          ...new Set(subcategory.map((item) => item.subcategory)),
+        ];
+        uniqueBrand = [...new Set(products.map((item) => item.Brand))];
+      } else {
         uniqueSubCategory = [
           ...new Set(products.map((item) => item.subcategory)),
         ];
-        uniqueBrand = [...new Set(products.map((item) => item.Brand))]
+        uniqueBrand = [...new Set(products.map((item) => item.Brand))];
       }
       res.send({ uniqueCategory, uniqueSubCategory, uniqueBrand });
     });
@@ -433,6 +478,7 @@ async function run() {
       res.send(result);
       console.log(result.length);
     });
+    
     // search frontend product
     app.get("/searchProduct/:searchText", async (req, res) => {
       const searchText = req.params.searchText;
