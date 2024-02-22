@@ -67,7 +67,7 @@ async function run() {
     //     });
     // });
 
-    // get products
+    // get products filtered or all
     app.get("/products", async (req, res) => {
       // const query = { status: "publish", stock_status: "instock" };
       const query = req.query;
