@@ -103,3 +103,16 @@ export const getProductsByCategory =  async (req, res) => {
         const result =await Products.find(query);
         res.send(result);
       };
+
+export const getProductsByQuery =  async (req, res) => {
+        const query = req.query;
+        console.log(query);
+        const filter = {
+          ...(query.search && {
+            name: { $regex: query.search, $options:"i" },
+          }),
+        };
+        console.log(filter);
+        const result = await Products.find(filter);
+        res.send(result);
+      };
