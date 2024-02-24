@@ -6,6 +6,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 import serviceRoute from "./routes/services.js";
+import productRoute from "./routes/products.js";
+import bookingRoute from "./routes/bookings.js";
+import userRoute from "./routes/users.js";
 
 // const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
@@ -36,6 +39,9 @@ app.use(express.json({ limit: "5mb" }));
 
 //routes
 app.use("/api/services/", serviceRoute);
+app.use("/api/products/", productRoute);
+app.use("/api/bookings/", bookingRoute);
+app.use("/api/users/", userRoute);
 
 app.get("/", async (req, res) => {
   res.send("Server is runing");
