@@ -1,8 +1,14 @@
-const express = require("express");
-const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+// const express = require("express");
+import express from "express";
+// const cors = require("cors");
+import cors from "cors";
 
-require("dotenv").config();
+// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+import { MongoClient,ServerApiVersion,ObjectId } from "mongodb";
+import dotenv from "dotenv";
+import userRoute from "./routes/users.js";
+
+dotenv.config();
 const port = process.env.PORT || 5000;
 
 const app = express();
@@ -16,30 +22,33 @@ app.use(express.json({ limit: "10mb" }));
 // pamper-me-backend.vercel.app
 
 const uri =
-  "mongodb+srv://pamperme20:pamperme20@cluster0.gzilgnl.mongodb.net/?retryWrites=true&w=majority";
+"mongodb+srv://pamperme20:pamperme20@cluster0.gzilgnl.mongodb.net/?retryWrites=true&w=majority";
 
 // const client = new MongoClient(uri, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-//   serverApi: ServerApiVersion.v1,
-// });
+  //   useNewUrlParser: true,
+  //   useUnifiedTopology: true,
+  //   serverApi: ServerApiVersion.v1,
+  // });
+  
+  const client = new MongoClient(uri, {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
+  });
+  
+const userCollection = client.db("pamperme").collection("users");
 
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+  app.use("/users", userRoute);
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     client.connect();
-
+    
     const productCollection = client.db("pamperme").collection("products");
     const orderCollection = client.db("pamperme").collection("orders");
-    const userCollection = client.db("pamperme").collection("users");
     const couponCollection = client.db("pamperme").collection("coupons");
     const blogCollection = client.db("pamperme").collection("blogs");
     const reviewCollection = client.db("pamperme").collection("reviews");
@@ -117,7 +126,8 @@ async function run() {
         let subcategory;
         if (query.brand) {
           subcategory = products.filter(
-            (product) => product.Brand == query.brand && product.category == query.category
+            (product) =>
+              product.Brand == query.brand && product.category == query.category
           );
         } else {
           subcategory = products.filter(
@@ -346,7 +356,10 @@ async function run() {
         ...(req.query.category &&
           req.query.category != "all" && { category: req.query.category }),
         ...(req.query.Brand && { Brand: req.query.Brand }),
-          ...((req.query.min && req.query.max) && ({price: {$gt:req.query.min, $lt:req.query.max}}) )
+        ...(req.query.min &&
+          req.query.max && {
+            price: { $gt: req.query.min, $lt: req.query.max },
+          }),
         // status: "publish",
         // stock_status: "instock",
         // category: { $regex: new RegExp(category, "i") },
@@ -357,16 +370,18 @@ async function run() {
     });
 
     //get products by query
-    app.get("/getProductsByQuery", async(req, res) =>{
+    app.get("/getProductsByQuery", async (req, res) => {
       const query = req.query;
       console.log(query);
       const filter = {
-        ...(query.search && {name: { $regex: new RegExp(query.search, "i") }})
-      }
-      console.log(filter)
-      const result = await  productCollection.find(filter).toArray();
+        ...(query.search && {
+          name: { $regex: new RegExp(query.search, "i") },
+        }),
+      };
+      console.log(filter);
+      const result = await productCollection.find(filter).toArray();
       res.send(result);
-    })
+    });
 
     //get filters
     app.get("/getfilters", async (req, res) => {
@@ -478,7 +493,7 @@ async function run() {
       res.send(result);
       console.log(result.length);
     });
-    
+
     // search frontend product
     app.get("/searchProduct/:searchText", async (req, res) => {
       const searchText = req.params.searchText;
@@ -986,3 +1001,6 @@ app.get("/", async (req, res) => {
 app.listen(port, () => {
   console.log("Listening at port", port);
 });
+
+
+export default userCollection;
