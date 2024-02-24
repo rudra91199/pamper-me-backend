@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 
 // const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-import { MongoClient,ServerApiVersion,ObjectId } from "mongodb";
+import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 import userRoute from "./routes/users.js";
 
@@ -15,38 +15,38 @@ const app = express();
 
 // middleware
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "5mb" }));
 
 // database user and password
 // pamperme20
 // pamper-me-backend.vercel.app
 
 const uri =
-"mongodb+srv://pamperme20:pamperme20@cluster0.gzilgnl.mongodb.net/?retryWrites=true&w=majority";
+  "mongodb+srv://pamperme20:pamperme20@cluster0.gzilgnl.mongodb.net/?retryWrites=true&w=majority";
 
 // const client = new MongoClient(uri, {
-  //   useNewUrlParser: true,
-  //   useUnifiedTopology: true,
-  //   serverApi: ServerApiVersion.v1,
-  // });
-  
-  const client = new MongoClient(uri, {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    },
-  });
-  
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+//   serverApi: ServerApiVersion.v1,
+// });
+
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
 const userCollection = client.db("pamperme").collection("users");
 
-  app.use("/users", userRoute);
+app.use("/users", userRoute);
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     client.connect();
-    
+
     const productCollection = client.db("pamperme").collection("products");
     const orderCollection = client.db("pamperme").collection("orders");
     const couponCollection = client.db("pamperme").collection("coupons");
@@ -1001,6 +1001,5 @@ app.get("/", async (req, res) => {
 app.listen(port, () => {
   console.log("Listening at port", port);
 });
-
 
 export default userCollection;
