@@ -3,6 +3,6 @@ import { getBookingByEmail } from "../controllers/bookings.controller.js";
 
 const router = express.Router();
 
-router.get("/:email", getBookingByEmail);
+router.get("/bookingsByEmail/:email", getBookingByEmail);
 
 export default router;
