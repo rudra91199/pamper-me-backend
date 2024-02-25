@@ -4,7 +4,12 @@ const userSchema = new mongoose.Schema({
   firstName: { type: String},
   email: { type: String, required:true },
   lastName: { type: String},
-  location: { type: String},
+  city: { type: String},
+  apartment: { type: String},
+  house: { type: String},
+  road: { type: String},
+  block: { type: String},
+  area: { type: String},
   phone: { type: Number},
   image: {
     type: Object
