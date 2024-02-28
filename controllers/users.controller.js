@@ -1,5 +1,12 @@
 import jwt from "jsonwebtoken";
 import Users from "../models/users.model.js";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: "dgyuvndgf",
+  api_key: 462279451922244,
+  api_secret: "WE5i5sHo3D4NASyyeNqqMATTvGs",
+});
 
 export const getUserByEmail = async (req, res) => {
   const query = { email: req.params.email };
@@ -25,7 +32,13 @@ export const creatUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
+  const id = req.query?.id;
   const email = { email: req.params.email };
   const result = await Users.updateOne(email, req.body, { upsert: true });
+  if (id) {
+    await cloudinary.uploader.destroy(id, (err, result) => {
+      console.log(err, result);
+    });
+  }
   res.send(result);
 };
