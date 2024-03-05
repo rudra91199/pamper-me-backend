@@ -108,6 +108,7 @@ export const getProductsByCategory = async (req, res) => {
 
 export const getProductsByQuery = async (req, res) => {
   const query = req.query;
+  console.log("product",query);
   const filter = {
     ...(query.search && {
       name: { $regex: query.search, $options: "i" },
