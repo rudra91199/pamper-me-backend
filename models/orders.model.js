@@ -1,46 +1,53 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema({
-    clientInfo:{
-        type:Object,
-        required:true
+const orderSchema = new mongoose.Schema(
+  {
+    clientInfo: {
+      type: Object,
+      required: true,
     },
-    OrderedProduct:{
-        type:Array,
-        required:true
+    OrderedProduct: {
+      type: Array,
+      required: true,
     },
-    coupon:{
-        type:String
+    shippingAddress: {
+      type: Object,
+      required: true,
     },
-    subtotal:{
-        type:Number,
-        required:true
+    coupon: {
+      type: String,
     },
-    totalPrice:{
-        type:Number,
-        required:true
+    subtotal: {
+      type: Number,
+      required: true,
     },
-    PaymentMethod:{
-        type:String,
-        required:true
+    totalPrice: {
+      type: Number,
+      required: true,
     },
-    paid:{
-        type:Boolean,
-        required:true
+    PaymentMethod: {
+      type: String,
+      required: true,
     },
-    shippingCharge:{
-        type:Number,
-        required:true
+    paid: {
+      type: Boolean,
+      required: true,
     },
-    vat:{
-        type:Number,
-        required:true
+    shippingCharge: {
+      type: Number,
+      required: true,
     },
-    comment:{
-        type:String,
+    vat: {
+      type: Number,
+      required: true,
     },
-},{
-    timestamps:true
-})
+    comment: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 export default mongoose.model("orders", orderSchema);
