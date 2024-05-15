@@ -131,3 +131,13 @@ export const addReview = async (req, res) => {
   });
   res.send(result);
 };
+
+export const postProduct = async (req, res) => {
+  try {
+      const newProduct = new Products(req.body);
+      const result = await newProduct.save();
+      res.send(result); 
+  } catch (error) {
+      console.log(error)
+  }
+}
