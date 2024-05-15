@@ -2,10 +2,9 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    _id: { type: String },
-    Brand: { type: String, required: true },
-    name: { type: String, required: true},
-    slug: { type: String, required: true},
+    Brand: { type: String },
+    name: { type: String},
+    slug: { type: String},
     sku: { type: String},
     description: { type: String},
     meta_description: { type: String},
@@ -14,8 +13,8 @@ const productSchema = new mongoose.Schema(
     sale_price: { type: String},
     on_sale: { type: String},
     short_description: { type: String},
-    category: { type: String, required: true },
-    subcategory: { type: String, required: true },
+    category: { type: String },
+    subcategory: { type: String},
     reviews: { type: Array },
     attributes: { type: Array },
     tags: { type: Array },
