@@ -133,6 +133,7 @@ export const addReview = async (req, res) => {
 };
 
 export const postProduct = async (req, res) => {
+  console.log(req.body)
   try {
       const newProduct = new Products(req.body);
       const result = await newProduct.save();
