@@ -39,7 +39,7 @@ const orderSchema = new mongoose.Schema(
     },
     vat: {
       type: Number,
-      required: true,
+      required: false,
     },
     comment: {
       type: String,

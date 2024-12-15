@@ -44,7 +44,6 @@ app.use("/api/products/", productRoute);
 app.use("/api/bookings/", bookingRoute);
 app.use("/api/users/", userRoute);
 app.use("/api/orders/", orderRoute);
-
 app.get("/", async (req, res) => {
   res.send("Server is runing");
 });
