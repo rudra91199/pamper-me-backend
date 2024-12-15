@@ -10,6 +10,7 @@ import productRoute from "./routes/products.js";
 import bookingRoute from "./routes/bookings.js";
 import userRoute from "./routes/users.js";
 import orderRoute from "./routes/orders.js";
+import employeeRoute from "./routes/employee.js";
 
 // const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
@@ -44,6 +45,8 @@ app.use("/api/products/", productRoute);
 app.use("/api/bookings/", bookingRoute);
 app.use("/api/users/", userRoute);
 app.use("/api/orders/", orderRoute);
+app.use("/api/employees/", employeeRoute);
+
 app.get("/", async (req, res) => {
   res.send("Server is runing");
 });
