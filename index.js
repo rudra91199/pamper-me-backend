@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import router from "./routes/index.route.js";
 
-const app = express();
 const port = process.env.PORT || 5000;
+const app = express();
 const uri = process.env.MONGO_URI;
 dotenv.config();
 

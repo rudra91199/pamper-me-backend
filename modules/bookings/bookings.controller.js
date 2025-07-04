@@ -128,6 +128,132 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
+export const getAllBookingsByParlourId = async (req, res) => {
+  try {
+    const { search, status, bookingId, parlourId } = req.query;
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
+    const filters = [];
+
+    if (status) {
+      filters.push({ status });
+    }
+
+    if (bookingId && mongoose.isValidObjectId(bookingId)) {
+      filters.push({ _id: new mongoose.Types.ObjectId(bookingId) });
+    }
+
+    const pipeline = [
+      {
+        $match: { parlourId: new mongoose.Types.ObjectId(parlourId) },
+      },
+      {
+        $lookup: {
+          from: "services",
+          localField: "serviceId",
+          foreignField: "_id",
+          as: "service",
+        },
+      },
+      {
+        $unwind: {
+          path: "$service",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "employee",
+          foreignField: "_id",
+          as: "employeeInfo",
+        },
+      },
+      {
+        $unwind: {
+          path: "$employeeInfo",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "Parlours",
+          localField: "parlourId",
+          foreignField: "_id",
+          as: "parlour",
+        },
+      },
+      {
+        $unwind: {
+          path: "$parlour",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          serviceDetails: {
+            title: "$service.title",
+            duration: "$service.duration",
+            category: "$service.category",
+            price: "$service.price",
+          },
+          employeeDetails: {
+            name: "$employeeInfo.name",
+            image: { $ifNull: ["$employeeInfo.image.url", null] },
+          },
+          parlourDetails: {
+            title: "$parlour.title",
+            address: "$parlour.address",
+          },
+        },
+      },
+      {
+        $project: { service: 0, employeeInfo: 0, parlour: 0 },
+      },
+    ];
+
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filters.push({
+        $or: [
+          { firstName: regex },
+          { lastName: regex },
+          { phone: regex },
+          { "parlourDetails.title": regex },
+          { "serviceDetails.title": regex },
+        ].filter(Boolean),
+      });
+    }
+
+    if (filters.length > 0) {
+      pipeline.push({
+        $match: { $and: filters },
+      });
+    }
+
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    );
+
+    const bookings = await Bookings.aggregate(pipeline);
+    const count = await Bookings.countDocuments({ parlourId });
+
+    SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Bookings fetched successfully.",
+      data: { bookings, count },
+    });
+  } catch (err) {
+    console.error("Error fetching filtered bookings:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 export const createBooking = async (req, res) => {
   const booking = new Bookings(req.body);
   const session = await mongoose.startSession();
@@ -263,5 +389,153 @@ export const getAllBookedSlots = async (req, res) => {
   } catch (error) {
     console.error("Error getting fully booked slots:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getSingleBooking = async (req, res) => {
+  const { bookingId } = req.params;
+  const pipeline = [
+    {
+      $match: { _id: new mongoose.Types.ObjectId(bookingId) },
+    },
+    {
+      $lookup: {
+        from: "services",
+        localField: "serviceId",
+        foreignField: "_id",
+        as: "service",
+      },
+    },
+    {
+      $unwind: {
+        path: "$service",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "employees",
+        localField: "employee",
+        foreignField: "_id",
+        as: "employeeInfo",
+      },
+    },
+    {
+      $unwind: {
+        path: "$employeeInfo",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: "$parlour",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        serviceDetails: {
+          title: "$service.title",
+          duration: "$service.duration",
+          category: "$service.category",
+          price: "$service.price",
+        },
+        employeeDetails: {
+          name: "$employeeInfo.name",
+          image: { $ifNull: ["$employeeInfo.image.url", null] },
+        },
+      },
+    },
+    {
+      $project: {
+        service: 0,
+        employeeInfo: 0,
+        email: 0,
+        phone: 0,
+      },
+    },
+  ];
+  try {
+    const booking = await Bookings.aggregate(pipeline);
+    SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Booking retrieved successfully.",
+      data: booking[0],
+    });
+  } catch (error) {
+    SendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: "Failed to retrived booking.",
+      data: null,
+    });
+  }
+};
+
+export const assignEmployee = async (req, res) => {
+  const { currentEmployee, selectedEmployee, bookingDate } = req.body;
+  const { bookingId } = req.params;
+  try {
+    if (currentEmployee) {
+      const removeBookingFromEmployee = await employeesModel.findByIdAndUpdate(
+        currentEmployee,
+        {
+          $pull: {
+            bookings: { bookingId: new mongoose.Types.ObjectId(bookingId) },
+          },
+        }
+      );
+    }
+    const assignEmployee = await bookingsModel.findByIdAndUpdate(bookingId, {
+      employee: selectedEmployee,
+    });
+    const addBookingToNewEmployee = await employeesModel.findByIdAndUpdate(
+      selectedEmployee,
+      {
+        $push: { bookings: { ...bookingDate, bookingId } },
+      }
+    );
+    SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Employee assigned successfully.",
+      data: null,
+    });
+  } catch (error) {
+    console.log(error);
+    SendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: error.message || "Failed to assign employee",
+      data: null,
+    });
+  }
+};
+
+export const statusUpdate = async (req, res) => {
+  const { bookingId } = req.params;
+  const { newStatus } = req.body;
+  try {
+    const updateStatus = await Bookings.findByIdAndUpdate(
+      bookingId,
+      {
+        status: newStatus,
+      },
+      { new: true }
+    );
+    SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Status updated successfully.",
+      data: null,
+    });
+  } catch (error) {
+    SendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: error.message || "Failed to update status.",
+      data: null,
+    });
   }
 };

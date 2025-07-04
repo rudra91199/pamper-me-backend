@@ -165,6 +165,30 @@ const getSingleParlour = async (req, res) => {
   }
 };
 
+const getParlourByOwner = async (req, res) => {
+  const { ownerId } = req.params;
+  try {
+    const parlour = await Parlour.findOne({ ownerId })
+      .populate("ownerId", "name email")
+      .populate({
+        path: "employees",
+        options: {
+          sort: { createdAt: -1 },
+        },
+      });
+    SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Parlour fetched successfully.",
+      data: parlour,
+    });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Failed to fetch parlour" });
+  }
+};
+
 const handleDeleteParlour = async (req, res) => {
   const id = req.params.parlourId;
   console.log(id);
@@ -204,4 +228,5 @@ export const ParlourControllers = {
   getAllParlours,
   getSingleParlour,
   handleDeleteParlour,
+  getParlourByOwner,
 };

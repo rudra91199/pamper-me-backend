@@ -15,6 +15,18 @@ router.post("/create", verifyToken, isAdmin, ServiceControllers.createService);
 
 router.get("/all", getServices);
 
+router.get(
+  "/getAllServiceByParlour/:parlourId",
+  ServiceControllers.getAllServiceByParlour
+);
+
+router.patch(
+  "/update/:id",
+  verifyToken,
+  isAdmin,
+  ServiceControllers.updateService
+);
+
 router.get("/getServicesByQuery", getServiceByQuery);
 
 router.put("/updateAllServices", updateAllService);

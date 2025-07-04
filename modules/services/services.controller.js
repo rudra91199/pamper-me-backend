@@ -5,7 +5,7 @@ import { Parlour } from "../parlour/parlour.model.js";
 import Services from "./services.model.js";
 
 const createService = async (req, res) => {
-  const { serviceImages } = req.body;
+  const { serviceImages, ...remainingData } = req.body;
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -31,7 +31,7 @@ const createService = async (req, res) => {
     }
 
     const serviceData = {
-      ...req.body,
+      ...remainingData,
       images: images,
     };
 
@@ -111,6 +111,121 @@ export const addReview = async (req, res) => {
   res.send(result);
 };
 
+export const getAllServiceByParlour = async (req, res) => {
+  const { parlourId } = req.params;
+  try {
+    const services = await Services.find({ parlourId });
+    SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Services retrieved successfully.",
+      data: services,
+    });
+  } catch (error) {
+    SendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: "Failed to retrived services.",
+      data: null,
+    });
+  }
+};
+
+export const updateService = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      title,
+      category,
+      shortDescription,
+      description,
+      price,
+      discount,
+      duration,
+      status,
+      removedItems = {},
+      newItems = {},
+    } = req.body;
+
+    const service = await Services.findById(id);
+    if (!service) return res.status(404).json({ message: "Service not found" });
+
+    if (title) service.title = title;
+    if (category) service.category = category;
+    if (shortDescription) service.shortDescription = shortDescription;
+    if (description) service.description = description;
+    if (price !== undefined) service.price = price;
+    if (discount !== undefined) service.discount = discount;
+    if (duration !== undefined) service.duration = duration;
+    if (status) service.status = status;
+
+    if (removedItems.images?.length > 0) {
+      const publicIdsToRemove = removedItems.images.map((img) => img.public_id);
+      service.images = service.images.filter((img) => {
+        const shouldRemove = publicIdsToRemove.includes(img.public_id);
+        if (shouldRemove) {
+          cloudinary.uploader.destroy(img.public_id);
+        }
+        return !shouldRemove;
+      });
+    }
+
+    if (removedItems.steps?.length > 0) {
+      const stepsToRemove = removedItems.steps.map((item) => item.step);
+      service.steps = service.steps.filter(
+        (step) => !stepsToRemove.includes(step)
+      );
+    }
+
+    if (removedItems.benefits?.length > 0) {
+      const benefitsToRemove = removedItems.benefits.map(
+        (item) => item.benefit
+      );
+      service.benefits = service.benefits.filter(
+        (ben) => !benefitsToRemove.includes(ben)
+      );
+    }
+
+    if (newItems.steps?.length > 0) {
+      const stepsToAdd = newItems.steps.map((item) => item.step);
+      service.steps.push(...stepsToAdd);
+    }
+
+    if (newItems.benefits?.length > 0) {
+      const benefitsToAdd = newItems.benefits.map((item) => item.benefit);
+      service.benefits.push(...benefitsToAdd);
+    }
+
+    if (newItems.images?.length > 0) {
+      for (const image of newItems.images) {
+        const result = await cloudinary.uploader.upload(image.url, {
+          upload_preset: "service_images",
+        });
+        service.images.push({
+          url: result.secure_url,
+          public_id: result.public_id,
+        });
+      }
+    }
+
+    await service.save();
+    return SendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Service updated.",
+      data: service,
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 export const ServiceControllers = {
   createService,
+  getAllServiceByParlour,
+  updateService,
 };
