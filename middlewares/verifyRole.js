@@ -1,4 +1,4 @@
-import { DashboardUser } from "../modules/dashBoardUser/dashBoardUser.model.js";
+import { DashboardUser } from "../modules/dashBoardUser/dashboardUser.model.js";
 
 const verifyRole = async (req, res, next) => {
   const requester = req?.userId;
